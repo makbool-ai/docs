@@ -1,0 +1,60 @@
+---
+title: "Stream (SSE)"
+description: "Получение ошибок в реальном времени через Server-Sent Events"
+---
+
+## Эндпоинт
+
+```http
+GET /stream?project_ids=1,2,3
+Authorization: Bearer <token>
+```
+
+Возвращает поток событий Server-Sent Events (SSE). Соединение остаётся открытым — события поступают по мере появления новых ошибок.
+
+## Формат событий
+
+```
+data: {"type":"new_error","project_id":1,"error_group_id":42,"message":"TypeError: ...","environment":"production","occurred_at":"2024-01-15T12:34:56Z"}
+```
+
+## Параметры
+
+| Параметр | Тип | Описание |
+|----------|-----|---------|
+| `project_ids` | `string` | Comma-separated список ID проектов |
+
+## Пример на JavaScript
+
+```js
+const token = localStorage.getItem('token')
+const projectIds = '1,2,3'
+
+const eventSource = new EventSource(
+  `https://makbool.ru/api/v1/stream?project_ids=${projectIds}`,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+)
+
+eventSource.addEventListener('new_error', (event) => {
+  const error = JSON.parse(event.data)
+  console.log('Новая ошибка:', error.message)
+})
+
+eventSource.onerror = () => {
+  // Переподключение через 5 секунд
+  setTimeout(() => reconnect(), 5000)
+}
+```
+
+## Типы событий
+
+| Тип | Описание |
+|-----|---------|
+| `new_error` | Появилась новая группа ошибок |
+| `ping` | Keepalive событие (каждые 30 секунд) |
+
+<Note>
+  SSE требует HTTP/1.1 или HTTP/2. Убедитесь, что ваш прокси не буферизует ответы (для Nginx: `proxy_buffering off`).
+</Note>

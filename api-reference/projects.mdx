@@ -1,0 +1,99 @@
+---
+title: "Проекты"
+description: "API для управления проектами"
+---
+
+## Создать проект
+
+```http
+POST /projects
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Мой сайт"
+}
+```
+
+### Ответ
+
+```json
+{
+  "id": 1,
+  "name": "Мой сайт",
+  "api_key": "pk_live_a1b2c3...",
+  "created_at": "2024-01-15T10:00:00Z"
+}
+```
+
+---
+
+## Список проектов
+
+```http
+GET /projects
+Authorization: Bearer <token>
+```
+
+---
+
+## Детали проекта
+
+```http
+GET /projects/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Обновить проект
+
+```http
+PUT /projects/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Новое название"
+}
+```
+
+---
+
+## Удалить проект
+
+```http
+DELETE /projects/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Ротация API Key
+
+Генерирует новый API Key. Старый ключ перестаёт работать немедленно.
+
+```http
+POST /projects/{id}/api-key/rotate
+Authorization: Bearer <token>
+```
+
+### Ответ
+
+```json
+{
+  "api_key": "pk_live_новый_ключ..."
+}
+```
+
+---
+
+## Загрузить source maps
+
+```http
+POST /projects/{id}/source-maps
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+file=@dist/assets/index.abc123.js.map
+```

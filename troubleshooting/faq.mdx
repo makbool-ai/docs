@@ -1,0 +1,119 @@
+---
+title: "FAQ и решение проблем"
+description: "Частые вопросы и их решения"
+---
+
+## SDK и интеграция
+
+<AccordionGroup>
+
+  <Accordion title="Ошибки не появляются в дашборде">
+    Проверьте по шагам:
+
+    1. **Правильный ли `projectKey`?** Скопируйте его заново из **Настройки проекта → API Key**.
+    2. **`init()` вызывается до ошибки?** Убедитесь, что инициализация происходит в самом начале точки входа (`main.js`, `_app.tsx`).
+    3. **Откройте вкладку Network** в DevTools → отфильтруйте по `/api/v1/errors` → найдите POST-запрос.
+       - Если запроса нет — SDK не инициализирован или ошибка происходит до вызова `init()`.
+       - Если запрос есть и возвращает `200` — проверьте, правильный ли проект открыт в дашборде.
+       - Если `401` — неверный ключ.
+       - Если `429` — исчерпан лимит ошибок плана.
+    4. Проверьте консоль на предупреждения `[MakboolSDK]`.
+  </Accordion>
+
+  <Accordion title="CORS ошибка при отправке ошибки">
+    В консоли: `Access to fetch at 'https://makbool.ru/api/v1/errors' has been blocked by CORS policy`
+
+    Это происходит если ваш frontend работает на домене, не входящем в список разрешённых.
+
+    **При self-hosted развёртывании:** добавьте ваш домен в `CORS_ORIGINS` в `.env`:
+    ```
+    CORS_ORIGINS=https://myapp.ru,https://staging.myapp.ru
+    ```
+
+    **При использовании cloud-версии:** напишите нам на [support@makbool.ru](mailto:support@makbool.ru).
+  </Accordion>
+
+  <Accordion title="SDK не работает в React Native / Node.js">
+    Текущий JS SDK предназначен только для браузера — он использует `window.onerror` и `fetch`.
+
+    Для Node.js и React Native используйте [Python SDK](/sdk/python-flask) или отправляйте ошибки напрямую через [REST API](/api-reference/errors).
+  </Accordion>
+
+  <Accordion title="captureError не отправляет после нескольких сотен ошибок">
+    SDK имеет встроенный rate limit. Если сервер отвечает `429` (лимит плана исчерпан), SDK прекращает отправку до перезагрузки страницы.
+
+    Проверьте текущее использование в **Биллинг → Использование**.
+  </Accordion>
+
+</AccordionGroup>
+
+## AI-объяснения
+
+<AccordionGroup>
+
+  <Accordion title="AI-объяснение не генерируется, кнопка «Объяснить» крутится">
+    Возможные причины:
+
+    1. **Исчерпан лимит AI-объяснений** — проверьте в **Биллинг → Использование**.
+    2. **При self-hosted:** Ollama не запущен. Проверьте: `docker compose logs ollama`. Ollama должен быть доступен по `OLLAMA_URL`.
+    3. **При self-hosted:** Celery worker не запущен. Проверьте: `docker compose logs celery`.
+    4. AI-объяснение генерируется асинхронно — обновите страницу через 10-15 секунд.
+  </Accordion>
+
+  <Accordion title="AI-объяснение на неправильном языке">
+    Язык ответа зависит от модели Ollama и промпта. При self-hosted развёртывании — настройте модель в `OLLAMA_MODEL_*` в `.env`.
+  </Accordion>
+
+</AccordionGroup>
+
+## Дашборд
+
+<AccordionGroup>
+
+  <Accordion title="Новые ошибки не появляются в реальном времени">
+    Дашборд использует SSE для обновлений. Проверьте:
+
+    1. Откройте DevTools → Network → отфильтруйте по `stream` — должно быть активное EventSource соединение.
+    2. SSE не работает через HTTP/1.0 прокси. Убедитесь, что у вас HTTPS и HTTP/1.1 или HTTP/2.
+    3. Попробуйте обновить страницу.
+  </Accordion>
+
+  <Accordion title="Стектрейс нечитаемый (минифицированный)">
+    Загрузите source maps через **Настройки проекта → Source Maps** или через API:
+
+    ```bash
+    curl -X POST https://makbool.ru/api/v1/projects/{id}/source-maps \
+      -H "Authorization: Bearer <token>" \
+      -F "file=@dist/assets/index.abc123.js.map"
+    ```
+
+    Source maps загружаются один раз на релиз. Автоматизируйте загрузку в CI/CD после каждого билда.
+  </Accordion>
+
+  <Accordion title="Ошибка помечена как resolved, но снова пришла">
+    Это ожидаемое поведение. Если та же ошибка (по fingerprint) поступает снова, она автоматически возвращается в `active` — чтобы вы не пропустили регрессию.
+  </Accordion>
+
+</AccordionGroup>
+
+## Биллинг
+
+<AccordionGroup>
+
+  <Accordion title="Платёж прошёл, но план не обновился">
+    Активация происходит через webhook от ЮКасса — обычно за несколько секунд.
+
+    Если план не обновился через 5 минут — напишите нам на [support@makbool.ru](mailto:support@makbool.ru) с номером платежа из письма от ЮКасса.
+  </Accordion>
+
+  <Accordion title="Хочу получить счёт для бухгалтерии">
+    Напишите на [support@makbool.ru](mailto:support@makbool.ru) с ИНН организации — выставим счёт.
+  </Accordion>
+
+</AccordionGroup>
+
+## Нашли баг?
+
+Если что-то работает не так — напишите нам:
+- Email: [support@makbool.ru](mailto:support@makbool.ru)
+- GitHub Issues: [github.com/makbool-ai](https://github.com/makbool-ai)

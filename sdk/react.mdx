@@ -1,0 +1,147 @@
+---
+title: "React"
+description: "Интеграция Makbool в React-приложение"
+---
+
+## Установка
+
+```bash
+npm install @mak_bool/sdk
+```
+
+## Инициализация
+
+Вызывайте `init()` в точке входа приложения — до рендера корневого компонента.
+
+```jsx
+// main.jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { init } from '@mak_bool/sdk'
+import App from './App'
+
+init({
+  projectKey: import.meta.env.VITE_MAKBOOL_KEY,
+  environment: import.meta.env.MODE,
+  release: import.meta.env.VITE_APP_VERSION,
+})
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+```
+
+## ErrorBoundary
+
+React не перехватывает ошибки внутри компонентов через `window.onerror`. Для этого нужен `ErrorBoundary`.
+
+```jsx
+// components/ErrorBoundary.jsx
+import React from 'react'
+import { captureError } from '@mak_bool/sdk'
+
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error, info) {
+    captureError(error, {
+      componentStack: info.componentStack,
+    })
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? <div>Что-то пошло не так</div>
+    }
+    return this.props.children
+  }
+}
+```
+
+Оберните приложение или отдельные части:
+
+```jsx
+// App.jsx
+import { ErrorBoundary } from './components/ErrorBoundary'
+
+export const App = () => (
+  <ErrorBoundary fallback={<ErrorPage />}>
+    <Router>
+      <Routes />
+    </Router>
+  </ErrorBoundary>
+)
+```
+
+## Ручная отправка в обработчиках
+
+```jsx
+import { captureError } from '@mak_bool/sdk'
+
+const CheckoutButton = ({ cartId }) => {
+  const handleCheckout = async () => {
+    try {
+      await processPayment(cartId)
+    } catch (err) {
+      captureError(err, { cartId, step: 'payment' })
+      showErrorToast('Ошибка при оплате')
+    }
+  }
+
+  return <button onClick={handleCheckout}>Оплатить</button>
+}
+```
+
+## Хук useErrorCapture
+
+Удобный хук для функциональных компонентов:
+
+```js
+// hooks/useErrorCapture.js
+import { captureError } from '@mak_bool/sdk'
+import { useCallback } from 'react'
+
+export const useErrorCapture = (context = {}) =>
+  useCallback(
+    (error) => captureError(error, context),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+```
+
+```jsx
+const ProfilePage = ({ userId }) => {
+  const capture = useErrorCapture({ userId, page: 'profile' })
+
+  const loadData = async () => {
+    try {
+      await fetchProfile(userId)
+    } catch (err) {
+      capture(err)
+    }
+  }
+
+  // ...
+}
+```
+
+## Vite: переменные окружения
+
+```bash
+# .env
+VITE_MAKBOOL_KEY=pk_live_ваш_ключ
+VITE_APP_VERSION=1.0.0
+```
+
+<Note>
+  В Vite переменные окружения должны начинаться с `VITE_`, чтобы быть доступными в браузере.
+</Note>

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Makbool",
+  "colors": {
+    "primary": "#6366f1",
+    "light": "#818cf8",
+    "dark": "#4f46e5"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "anchors": [
+      {
+        "anchor": "Documentation",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Начало работы",
+            "pages": [
+              "getting-started/introduction",
+              "getting-started/quickstart",
+              "getting-started/concepts"
+            ]
+          },
+          {
+            "group": "SDK",
+            "pages": [
+              "sdk/javascript",
+              "sdk/react",
+              "sdk/nextjs",
+              "sdk/vue",
+              "sdk/python-flask",
+              "sdk/python-django"
+            ]
+          },
+          {
+            "group": "Дашборд",
+            "pages": [
+              "dashboard/projects",
+              "dashboard/error-groups",
+              "dashboard/ai-summary",
+              "dashboard/analytics",
+              "dashboard/alerts"
+            ]
+          },
+          {
+            "group": "Биллинг",
+            "pages": [
+              "billing/plans",
+              "billing/subscription"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/errors",
+              "api-reference/projects",
+              "api-reference/stream"
+            ]
+          },
+          {
+            "group": "Помощь",
+            "pages": [
+              "troubleshooting/faq"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/makbool-ai",
+          "icon": "github"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "makbool.ru",
+        "href": "https://makbool.ru"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Войти",
+      "href": "https://makbool.ru/login"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/makbool-ai",
+      "website": "https://makbool.ru"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+---
+title: "Введение"
+description: "Makbool — мониторинг ошибок с AI-объяснениями для разработчиков"
+---
+
+## Что такое Makbool?
+
+Makbool отслеживает ошибки в ваших приложениях, группирует их по смыслу и объясняет причину с помощью AI. Вместо того чтобы разбирать стектрейс вручную, вы получаете чёткое объяснение — что сломалось и почему.
+
+## Как это работает
+
+<Steps>
+  <Step title="Подключите SDK">
+    Две строки кода в вашем приложении — JavaScript или Python.
+  </Step>
+  <Step title="Ошибки поступают автоматически">
+    SDK перехватывает все необработанные исключения и отправляет их в Makbool. Вы ничего не пропустите.
+  </Step>
+  <Step title="Умная группировка">
+    Одна и та же ошибка не создаёт тысячу уведомлений. Makbool группирует похожие ошибки по fingerprint — SHA256 от нормализованного сообщения и стектрейса.
+  </Step>
+  <Step title="AI-объяснение">
+    Нажмите «Объяснить» — и получите понятное описание ошибки, её причины и способа исправления.
+  </Step>
+</Steps>
+
+## Возможности
+
+- **Автоматический перехват** — `window.onerror`, `unhandledrejection`, Flask/Django middleware
+- **Breadcrumbs** — история действий перед ошибкой: HTTP-запросы, навигация, консоль
+- **AI-объяснения** — powered by Ollama (локальный LLM, данные не покидают ваш сервер)
+- **Реальное время** — новые ошибки появляются в дашборде мгновенно через SSE
+- **Telegram-уведомления** — алерты прямо в ваш рабочий чат
+- **Аналитика** — динамика ошибок, hourly distribution, топ проблем
+- **Source maps** — разворачивание минифицированных стектрейсов
+
+## Поддерживаемые платформы
+
+<CardGroup cols={3}>
+  <Card title="JavaScript" icon="js">
+    Vanilla JS, любой браузер
+  </Card>
+  <Card title="React" icon="react">
+    React 16+, ErrorBoundary
+  </Card>
+  <Card title="Next.js" icon="n">
+    App Router, Pages Router
+  </Card>
+  <Card title="Vue" icon="vuejs">
+    Vue 3
+  </Card>
+  <Card title="Python / Flask" icon="python">
+    Flask 2+
+  </Card>
+  <Card title="Python / Django" icon="python">
+    Django 3.2+
+  </Card>
+</CardGroup>
+
+## Следующий шаг
+
+<Card title="Быстрый старт — 5 минут" icon="rocket" href="/getting-started/quickstart">
+  Подключите Makbool и поймайте первую ошибку
+</Card>

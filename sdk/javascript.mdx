@@ -1,0 +1,166 @@
+---
+title: "JavaScript SDK"
+description: "Универсальный SDK для браузера — 2 КБ, без зависимостей"
+---
+
+## Установка
+
+<CodeGroup>
+
+```bash npm
+npm install @mak_bool/sdk
+```
+
+```bash yarn
+yarn add @mak_bool/sdk
+```
+
+```bash pnpm
+pnpm add @mak_bool/sdk
+```
+
+```html CDN
+<script src="https://makbool.ru/sdk.min.js"></script>
+```
+
+</CodeGroup>
+
+## Инициализация
+
+Вызывайте `init()` один раз — как можно раньше, до любого другого кода.
+
+```js
+import { init } from '@mak_bool/sdk'
+
+init({
+  projectKey: 'pk_live_ваш_ключ', // обязательно
+  environment: 'production',       // опционально, по умолчанию 'production'
+  release: '1.2.0',                // опционально, версия приложения
+})
+```
+
+После инициализации SDK автоматически перехватывает:
+- Все необработанные исключения (`window.onerror`)
+- Все необработанные Promise rejection (`unhandledrejection`)
+- HTTP-запросы через `fetch` (для breadcrumbs)
+- Навигацию (`pushState`, `popstate`)
+
+### Параметры init
+
+| Параметр | Тип | Обязательный | Описание |
+|----------|-----|:---:|---------|
+| `projectKey` | `string` | ✓ | API Key проекта из настроек |
+| `environment` | `string` | — | Окружение (`production`, `staging`, `development`) |
+| `release` | `string` | — | Версия приложения, отображается в деталях ошибки |
+| `endpoint` | `string` | — | URL API (по умолчанию `https://makbool.ru/api/errors`) |
+
+## Ручная отправка ошибок {#capture-error}
+
+Для ошибок в блоках `try/catch` используйте `captureError`:
+
+```js
+import { captureError } from '@mak_bool/sdk'
+
+async function loadUserData(userId) {
+  try {
+    const data = await fetchUser(userId)
+    return data
+  } catch (err) {
+    captureError(err, {
+      userId,
+      feature: 'user-profile',
+    })
+    throw err
+  }
+}
+```
+
+Второй аргумент — произвольный объект с контекстом. Он сохраняется в поле `metadata` ошибки.
+
+## Breadcrumbs
+
+SDK автоматически добавляет breadcrumbs для fetch и навигации. Можно добавлять свои:
+
+```js
+import { addBreadcrumb } from '@mak_bool/sdk'
+
+// Перед важным действием
+addBreadcrumb({
+  type: 'user',
+  category: 'checkout',
+  message: 'Пользователь нажал "Оплатить"',
+  data: { cartTotal: 1490 },
+})
+```
+
+### Поля breadcrumb
+
+| Поле | Тип | Описание |
+|------|-----|---------|
+| `type` | `string` | Тип: `http`, `navigation`, `user`, `default` |
+| `category` | `string` | Подкатегория для фильтрации |
+| `message` | `string` | Текст события |
+| `data` | `object` | Дополнительные данные |
+| `level` | `string` | Уровень: `info`, `warning`, `error` |
+
+SDK хранит последние 50 breadcrumbs — они отправляются вместе с каждой ошибкой.
+
+## CommonJS
+
+```js
+const { init, captureError } = require('@mak_bool/sdk/cjs')
+
+init({ projectKey: 'pk_live_ваш_ключ' })
+```
+
+## CDN (без сборщика)
+
+```html
+<script src="https://makbool.ru/sdk.min.js"></script>
+<script>
+  MakboolSDK.init({
+    projectKey: 'pk_live_ваш_ключ',
+    environment: 'production',
+  })
+</script>
+```
+
+## TypeScript
+
+SDK поставляется с типами. Дополнительная настройка не требуется.
+
+```ts
+import { init, captureError, addBreadcrumb } from '@mak_bool/sdk'
+
+init({
+  projectKey: 'pk_live_ваш_ключ',
+  environment: process.env.NODE_ENV as string,
+  release: process.env.VITE_APP_VERSION,
+})
+```
+
+## Переменные окружения
+
+Храните API Key в переменных окружения, не в коде:
+
+<CodeGroup>
+
+```bash Vite (.env)
+VITE_MAKBOOL_KEY=pk_live_ваш_ключ
+```
+
+```bash Create React App (.env)
+REACT_APP_MAKBOOL_KEY=pk_live_ваш_ключ
+```
+
+</CodeGroup>
+
+```js
+init({
+  projectKey: import.meta.env.VITE_MAKBOOL_KEY,
+})
+```
+
+<Warning>
+  Не коммитьте API Key в репозиторий. Используйте `.env` файлы и добавьте их в `.gitignore`.
+</Warning>

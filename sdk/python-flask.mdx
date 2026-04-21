@@ -1,0 +1,118 @@
+---
+title: "Python / Flask"
+description: "Интеграция Makbool Python SDK в Flask"
+---
+
+## Установка
+
+```bash
+pip install makbool-sdk
+```
+
+## Инициализация
+
+```python
+# app.py
+from flask import Flask
+from makbool_sdk.integrations.flask import MakboolFlaskMiddleware
+import makbool_sdk
+
+app = Flask(__name__)
+
+makbool_sdk.init(
+    project_key='pk_live_ваш_ключ',
+    environment='production',
+    release='1.0.0',  # опционально
+)
+
+# Подключите middleware — автоматически перехватывает все необработанные исключения
+MakboolFlaskMiddleware(app)
+```
+
+После этого все необработанные исключения в ваших роутах будут автоматически отправляться в Makbool.
+
+## Ручная отправка
+
+```python
+import makbool_sdk
+
+@app.route('/checkout', methods=['POST'])
+def checkout():
+    try:
+        result = process_payment(request.json)
+        return jsonify(result)
+    except PaymentError as e:
+        makbool_sdk.capture_exception(e, context={
+            'user_id': current_user.id,
+            'amount': request.json.get('amount'),
+        })
+        return jsonify({'error': 'Payment failed'}), 400
+```
+
+## capture_message
+
+Для отправки не-исключений (предупреждения, важные события):
+
+```python
+import makbool_sdk
+
+def process_order(order_id):
+    order = Order.query.get(order_id)
+    if order.total > 100_000:
+        makbool_sdk.capture_message(
+            f'Крупный заказ: {order.total} ₽',
+            level='warning',
+            context={'order_id': order_id},
+        )
+```
+
+## Breadcrumbs
+
+```python
+import makbool_sdk
+
+def process_payment(data):
+    makbool_sdk.add_breadcrumb(
+        message='Начало обработки платежа',
+        category='payment',
+        data={'amount': data['amount']},
+    )
+
+    result = call_payment_api(data)
+
+    makbool_sdk.add_breadcrumb(
+        message='Платёж завершён',
+        category='payment',
+        data={'status': result['status']},
+    )
+
+    return result
+```
+
+## Переменные окружения
+
+Храните ключ в переменных окружения:
+
+```bash
+# .env
+MAKBOOL_KEY=pk_live_ваш_ключ
+```
+
+```python
+import os
+import makbool_sdk
+
+makbool_sdk.init(
+    project_key=os.environ['MAKBOOL_KEY'],
+    environment=os.environ.get('FLASK_ENV', 'production'),
+)
+```
+
+## Параметры init
+
+| Параметр | Тип | Обязательный | Описание |
+|----------|-----|:---:|---------|
+| `project_key` | `str` | ✓ | API Key проекта |
+| `environment` | `str` | — | Окружение (`production`, `staging`) |
+| `release` | `str` | — | Версия приложения |
+| `endpoint` | `str` | — | URL API (если self-hosted) |

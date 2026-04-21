@@ -1,0 +1,131 @@
+---
+title: "Ошибки"
+description: "API для приёма и получения ошибок"
+---
+
+## Отправить ошибку
+
+```http
+POST /errors
+Content-Type: application/json
+```
+
+Этот эндпоинт используется SDK. Аутентификация через `project_api_key` в теле запроса — JWT не нужен.
+
+### Тело запроса
+
+```json
+{
+  "project_api_key": "pk_live_ваш_ключ",
+  "message": "TypeError: Cannot read properties of undefined",
+  "stacktrace": "TypeError: Cannot read properties of undefined\n    at ProductList (ProductList.js:23:18)\n    ...",
+  "environment": "production",
+  "release": "1.2.0",
+  "url": "https://myapp.ru/products",
+  "user_agent": "Mozilla/5.0 ...",
+  "metadata": {
+    "userId": "123",
+    "feature": "catalog"
+  },
+  "breadcrumbs": [
+    {
+      "timestamp": "2024-01-15T12:34:00Z",
+      "type": "navigation",
+      "category": "history",
+      "data": { "to": "/products" }
+    }
+  ]
+}
+```
+
+### Параметры
+
+| Поле | Тип | Обязательный | Описание |
+|------|-----|:---:|---------|
+| `project_api_key` | `string` | ✓ | API Key проекта |
+| `message` | `string` | ✓ | Сообщение об ошибке |
+| `stacktrace` | `string` | — | Стектрейс |
+| `environment` | `string` | — | Окружение (`production`, `staging`) |
+| `release` | `string` | — | Версия приложения |
+| `url` | `string` | — | URL страницы, где произошла ошибка |
+| `user_agent` | `string` | — | User-Agent браузера |
+| `metadata` | `object` | — | Произвольный контекст |
+| `breadcrumbs` | `array` | — | История событий перед ошибкой |
+
+### Ответ
+
+```json
+{
+  "success": true,
+  "error_group_id": 42,
+  "fingerprint": "a1b2c3d4...",
+  "is_new_group": true
+}
+```
+
+`is_new_group: true` означает, что это первое вхождение данной ошибки — по нему срабатывают уведомления.
+
+---
+
+## Список групп ошибок
+
+```http
+GET /errors?project_id=1&page=1&size=20
+Authorization: Bearer <token>
+```
+
+### Query параметры
+
+| Параметр | Тип | Описание |
+|----------|-----|---------|
+| `project_id` | `int` | ID проекта |
+| `environment` | `string` | Фильтр по окружению |
+| `status` | `string` | `active` или `resolved` |
+| `search` | `string` | Поиск по тексту ошибки |
+| `page` | `int` | Номер страницы (с 1) |
+| `size` | `int` | Размер страницы (до 100) |
+
+---
+
+## Детали группы ошибок
+
+```http
+GET /errors/{group_id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Изменить статус
+
+```http
+PATCH /errors/{group_id}/status
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "status": "resolved"
+}
+```
+
+---
+
+## Сгенерировать AI-объяснение
+
+```http
+POST /errors/{group_id}/ai-summary
+Authorization: Bearer <token>
+```
+
+Расходует 1 единицу лимита AI-объяснений.
+
+---
+
+## Получить AI-объяснение
+
+```http
+GET /errors/{group_id}/ai-summary
+Authorization: Bearer <token>
+```
+
+Возвращает сохранённое объяснение без расхода лимита.

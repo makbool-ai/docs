@@ -1,0 +1,91 @@
+{
+  "name": "Makbool",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#6366f1",
+    "light": "#818cf8",
+    "dark": "#4f46e5"
+  },
+  "topbar": {
+    "style": "default"
+  },
+  "topbarLinks": [
+    {
+      "name": "makbool.ru",
+      "url": "https://makbool.ru"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Войти",
+    "url": "https://makbool.ru/login"
+  },
+  "tabs": [],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/makbool-ai"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Начало работы",
+      "pages": [
+        "getting-started/introduction",
+        "getting-started/quickstart",
+        "getting-started/concepts"
+      ]
+    },
+    {
+      "group": "SDK",
+      "pages": [
+        "sdk/javascript",
+        "sdk/react",
+        "sdk/nextjs",
+        "sdk/vue",
+        "sdk/python-flask",
+        "sdk/python-django"
+      ]
+    },
+    {
+      "group": "Дашборд",
+      "pages": [
+        "dashboard/projects",
+        "dashboard/error-groups",
+        "dashboard/ai-summary",
+        "dashboard/analytics",
+        "dashboard/alerts"
+      ]
+    },
+    {
+      "group": "Биллинг",
+      "pages": [
+        "billing/plans",
+        "billing/subscription"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/overview",
+        "api-reference/errors",
+        "api-reference/projects",
+        "api-reference/stream"
+      ]
+    },
+    {
+      "group": "Помощь",
+      "pages": [
+        "troubleshooting/faq"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/makbool-ai",
+    "website": "https://makbool.ru"
+  }
+}

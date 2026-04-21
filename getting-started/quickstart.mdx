@@ -1,0 +1,103 @@
+---
+title: "Быстрый старт"
+description: "От регистрации до первой пойманной ошибки за 5 минут"
+---
+
+## Шаг 1. Создайте аккаунт
+
+Перейдите на [makbool.ru/signup](https://makbool.ru/signup) и зарегистрируйтесь. Пароль не нужен — войдите через email.
+
+## Шаг 2. Создайте проект
+
+В дашборде нажмите **«Новый проект»**, введите название и нажмите **«Создать»**.
+
+Перейдите в **Настройки проекта** и скопируйте **API Key** — он выглядит как `pk_live_...`.
+
+## Шаг 3. Установите SDK
+
+<CodeGroup>
+
+```bash npm
+npm install @mak_bool/sdk
+```
+
+```bash yarn
+yarn add @mak_bool/sdk
+```
+
+```bash pnpm
+pnpm add @mak_bool/sdk
+```
+
+```html CDN
+<script src="https://makbool.ru/sdk.min.js"></script>
+```
+
+</CodeGroup>
+
+## Шаг 4. Инициализируйте
+
+<CodeGroup>
+
+```js ES Module
+import { init } from '@mak_bool/sdk'
+
+init({
+  projectKey: 'pk_live_ваш_ключ',
+  environment: 'production',
+})
+```
+
+```js CommonJS
+const { init } = require('@mak_bool/sdk')
+
+init({
+  projectKey: 'pk_live_ваш_ключ',
+  environment: 'production',
+})
+```
+
+```html CDN
+<script src="https://makbool.ru/sdk.min.js"></script>
+<script>
+  MakboolSDK.init({
+    projectKey: 'pk_live_ваш_ключ',
+    environment: 'production',
+  })
+</script>
+```
+
+</CodeGroup>
+
+Вызывайте `init()` как можно раньше — до любого другого кода в вашем приложении.
+
+## Шаг 5. Проверьте интеграцию
+
+Откройте консоль браузера на вашем сайте и выполните:
+
+```js
+throw new Error('Test error from Makbool!')
+```
+
+Откройте [дашборд](https://makbool.ru/dashboard) — ошибка появится в течение нескольких секунд.
+
+<Check>
+  Если вы видите ошибку в дашборде — всё работает. Поздравляем!
+</Check>
+
+## Что дальше?
+
+<CardGroup cols={2}>
+  <Card title="Ручная отправка ошибок" icon="hand" href="/sdk/javascript#capture-error">
+    Отправляйте ошибки из блоков try/catch
+  </Card>
+  <Card title="React интеграция" icon="react" href="/sdk/react">
+    ErrorBoundary и автоматический перехват в React
+  </Card>
+  <Card title="Next.js интеграция" icon="n" href="/sdk/nextjs">
+    Server и Client компоненты, instrumentation
+  </Card>
+  <Card title="Telegram-уведомления" icon="telegram" href="/dashboard/alerts">
+    Получайте алерты прямо в Telegram
+  </Card>
+</CardGroup>

@@ -1,0 +1,102 @@
+---
+title: "Vue"
+description: "Интеграция Makbool в Vue 3"
+---
+
+## Установка
+
+```bash
+npm install @mak_bool/sdk
+```
+
+## Инициализация
+
+```js
+// main.js
+import { createApp } from 'vue'
+import { init, captureError } from '@mak_bool/sdk'
+import App from './App.vue'
+
+init({
+  projectKey: import.meta.env.VITE_MAKBOOL_KEY,
+  environment: import.meta.env.MODE,
+  release: import.meta.env.VITE_APP_VERSION,
+})
+
+const app = createApp(App)
+
+// Глобальный обработчик ошибок Vue
+app.config.errorHandler = (err, instance, info) => {
+  captureError(err, {
+    componentName: instance?.$options?.name,
+    lifecycleHook: info,
+  })
+}
+
+app.mount('#app')
+```
+
+## Плагин для Vue
+
+Для более удобного использования оберните в плагин:
+
+```js
+// plugins/makbool.js
+import { init, captureError } from '@mak_bool/sdk'
+
+export const makboolPlugin = {
+  install(app, options) {
+    init(options)
+
+    app.config.errorHandler = (err, instance, info) => {
+      captureError(err, {
+        componentName: instance?.$options?.name ?? 'unknown',
+        lifecycleHook: info,
+      })
+    }
+
+    app.provide('captureError', captureError)
+  },
+}
+```
+
+```js
+// main.js
+import { createApp } from 'vue'
+import App from './App.vue'
+import { makboolPlugin } from './plugins/makbool'
+
+const app = createApp(App)
+
+app.use(makboolPlugin, {
+  projectKey: import.meta.env.VITE_MAKBOOL_KEY,
+  environment: import.meta.env.MODE,
+})
+
+app.mount('#app')
+```
+
+## Использование в компонентах
+
+```vue
+<script setup>
+import { captureError } from '@mak_bool/sdk'
+
+const loadData = async () => {
+  try {
+    await fetchSomething()
+  } catch (err) {
+    captureError(err, { component: 'MyComponent', action: 'loadData' })
+    throw err
+  }
+}
+</script>
+```
+
+## Переменные окружения (Vite)
+
+```bash
+# .env
+VITE_MAKBOOL_KEY=pk_live_ваш_ключ
+VITE_APP_VERSION=1.0.0
+```

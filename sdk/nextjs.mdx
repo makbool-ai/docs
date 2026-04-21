@@ -1,0 +1,171 @@
+---
+title: "Next.js"
+description: "Интеграция Makbool в Next.js — App Router и Pages Router"
+---
+
+## Установка
+
+```bash
+npm install @mak_bool/sdk
+```
+
+## App Router
+
+### Инициализация на клиенте
+
+Создайте провайдер и добавьте его в корневой layout:
+
+```tsx
+// components/MakboolProvider.tsx
+'use client'
+
+import { useEffect } from 'react'
+import { init } from '@mak_bool/sdk'
+
+export function MakboolProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    init({
+      projectKey: process.env.NEXT_PUBLIC_MAKBOOL_KEY!,
+      environment: process.env.NODE_ENV,
+      release: process.env.NEXT_PUBLIC_APP_VERSION,
+    })
+  }, [])
+
+  return <>{children}</>
+}
+```
+
+```tsx
+// app/layout.tsx
+import { MakboolProvider } from '@/components/MakboolProvider'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ru">
+      <body>
+        <MakboolProvider>
+          {children}
+        </MakboolProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+### ErrorBoundary для App Router
+
+```tsx
+// app/error.tsx
+'use client'
+
+import { useEffect } from 'react'
+import { captureError } from '@mak_bool/sdk'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error
+  reset: () => void
+}) {
+  useEffect(() => {
+    captureError(error, { boundary: 'app-router' })
+  }, [error])
+
+  return (
+    <div>
+      <h2>Что-то пошло не так</h2>
+      <button onClick={reset}>Попробовать снова</button>
+    </div>
+  )
+}
+```
+
+### Ошибки серверных компонентов
+
+Для серверной стороны используйте `instrumentation.ts`:
+
+```ts
+// instrumentation.ts (в корне проекта)
+export async function register() {
+  // Серверная инициализация только в Node.js runtime
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // Используйте Python SDK или прямой POST к API для серверных ошибок
+  }
+}
+
+export async function onRequestError(
+  err: Error,
+  request: { path: string; method: string },
+) {
+  // Отправка серверных ошибок в Makbool
+  await fetch(`${process.env.MAKBOOL_ENDPOINT}/api/v1/errors`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      project_api_key: process.env.MAKBOOL_KEY,
+      message: err.message,
+      stacktrace: err.stack,
+      environment: process.env.NODE_ENV,
+      metadata: { path: request.path, method: request.method },
+    }),
+  })
+}
+```
+
+<Note>
+  `instrumentation.ts` требует `experimental.instrumentationHook: true` в `next.config.js` для Next.js < 14.
+</Note>
+
+## Pages Router
+
+```tsx
+// pages/_app.tsx
+import type { AppProps } from 'next/app'
+import { useEffect } from 'react'
+import { init } from '@mak_bool/sdk'
+
+export default function App({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    init({
+      projectKey: process.env.NEXT_PUBLIC_MAKBOOL_KEY!,
+      environment: process.env.NODE_ENV,
+    })
+  }, [])
+
+  return <Component {...pageProps} />
+}
+```
+
+```tsx
+// pages/_error.tsx
+import { NextPageContext } from 'next'
+import { captureError } from '@mak_bool/sdk'
+
+function Error({ statusCode }: { statusCode: number }) {
+  return <p>Ошибка {statusCode}</p>
+}
+
+Error.getInitialProps = async ({ err }: NextPageContext) => {
+  if (err) captureError(err)
+  return { statusCode: 500 }
+}
+
+export default Error
+```
+
+## Переменные окружения
+
+```bash
+# .env.local
+NEXT_PUBLIC_MAKBOOL_KEY=pk_live_ваш_ключ
+NEXT_PUBLIC_APP_VERSION=1.0.0
+
+# Только для сервера (без NEXT_PUBLIC_)
+MAKBOOL_KEY=pk_live_ваш_ключ
+MAKBOOL_ENDPOINT=https://makbool.ru
+```
+
+<Warning>
+  Переменные с префиксом `NEXT_PUBLIC_` доступны в браузере — не передавайте в них секреты. `MAKBOOL_KEY` без префикса безопасен для серверного кода.
+</Warning>

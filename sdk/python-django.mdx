@@ -1,0 +1,120 @@
+---
+title: "Python / Django"
+description: "Интеграция Makbool Python SDK в Django"
+---
+
+## Установка
+
+```bash
+pip install makbool-sdk
+```
+
+## Инициализация
+
+Инициализируйте SDK в `settings.py` или в файле `apps.py` вашего приложения:
+
+```python
+# settings.py
+import os
+import makbool_sdk
+
+makbool_sdk.init(
+    project_key=os.environ['MAKBOOL_KEY'],
+    environment=os.environ.get('DJANGO_ENV', 'production'),
+    release=os.environ.get('APP_VERSION'),
+)
+
+# Добавьте middleware в список
+MIDDLEWARE = [
+    'makbool_sdk.integrations.django.MakboolDjangoMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    # ...остальные middleware
+]
+```
+
+Middleware автоматически перехватывает все необработанные исключения и отправляет их в Makbool вместе с URL и HTTP-методом запроса.
+
+## Ручная отправка
+
+```python
+# views.py
+import makbool_sdk
+from django.http import JsonResponse
+
+def payment_view(request):
+    try:
+        result = process_payment(request.POST)
+        return JsonResponse({'status': 'ok'})
+    except PaymentError as e:
+        makbool_sdk.capture_exception(e, context={
+            'user_id': request.user.pk,
+            'path': request.path,
+        })
+        return JsonResponse({'error': 'Payment failed'}, status=400)
+```
+
+## Контекст пользователя
+
+Middleware автоматически добавляет `user_id` если пользователь аутентифицирован через Django Auth.
+
+Для дополнительного контекста:
+
+```python
+import makbool_sdk
+
+def my_view(request):
+    makbool_sdk.add_breadcrumb(
+        message=f'Пользователь открыл страницу {request.path}',
+        category='navigation',
+        data={'user_id': str(request.user.pk)},
+    )
+    # ...
+```
+
+## capture_message
+
+```python
+import makbool_sdk
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        result = run_export()
+        if result.warnings:
+            makbool_sdk.capture_message(
+                f'Экспорт завершён с предупреждениями: {len(result.warnings)}',
+                level='warning',
+                context={'warnings': result.warnings[:10]},
+            )
+```
+
+## Переменные окружения
+
+```bash
+# .env
+MAKBOOL_KEY=pk_live_ваш_ключ
+DJANGO_ENV=production
+APP_VERSION=2.1.0
+```
+
+```python
+# settings.py
+from decouple import config
+
+makbool_sdk.init(
+    project_key=config('MAKBOOL_KEY'),
+    environment=config('DJANGO_ENV', default='production'),
+)
+```
+
+## Позиция middleware
+
+Рекомендуем ставить `MakboolDjangoMiddleware` **первым** в списке, чтобы перехватывать ошибки из других middleware:
+
+```python
+MIDDLEWARE = [
+    'makbool_sdk.integrations.django.MakboolDjangoMiddleware',  # первым
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    # ...
+]
+```
