@@ -23,14 +23,7 @@ description: "Частые вопросы и их решения"
   <Accordion title="CORS ошибка при отправке ошибки">
     В консоли: `Access to fetch at 'https://makbool.ru/api/v1/errors' has been blocked by CORS policy`
 
-    Это происходит если ваш frontend работает на домене, не входящем в список разрешённых.
-
-    **При self-hosted развёртывании:** добавьте ваш домен в `CORS_ORIGINS` в `.env`:
-    ```
-    CORS_ORIGINS=https://myapp.ru,https://staging.myapp.ru
-    ```
-
-    **При использовании cloud-версии:** напишите нам на [support@makbool.ru](mailto:support@makbool.ru).
+    Напишите нам на [support@makbool.ru](mailto:support@makbool.ru) — добавим ваш домен в список разрешённых.
   </Accordion>
 
   <Accordion title="SDK не работает в React Native / Node.js">
@@ -55,13 +48,9 @@ description: "Частые вопросы и их решения"
     Возможные причины:
 
     1. **Исчерпан лимит AI-объяснений** — проверьте в **Биллинг → Использование**.
-    2. **При self-hosted:** Ollama не запущен. Проверьте: `docker compose logs ollama`. Ollama должен быть доступен по `OLLAMA_URL`.
-    3. **При self-hosted:** Celery worker не запущен. Проверьте: `docker compose logs celery`.
-    4. AI-объяснение генерируется асинхронно — обновите страницу через 10-15 секунд.
-  </Accordion>
+    2. AI-объяснение генерируется асинхронно — обновите страницу через 10-15 секунд.
 
-  <Accordion title="AI-объяснение на неправильном языке">
-    Язык ответа зависит от модели Ollama и промпта. При self-hosted развёртывании — настройте модель в `OLLAMA_MODEL_*` в `.env`.
+    Если проблема не решается — напишите на [support@makbool.ru](mailto:support@makbool.ru).
   </Accordion>
 
 </AccordionGroup>
